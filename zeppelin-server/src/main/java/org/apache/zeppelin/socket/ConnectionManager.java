@@ -28,6 +28,7 @@ import org.apache.zeppelin.display.GUI;
 import org.apache.zeppelin.display.Input;
 import org.apache.zeppelin.notebook.Note;
 import org.apache.zeppelin.notebook.NoteInfo;
+import org.apache.zeppelin.notebook.Notebook;
 import org.apache.zeppelin.notebook.NotebookImportDeserializer;
 import org.apache.zeppelin.notebook.Paragraph;
 import org.apache.zeppelin.notebook.AuthorizationService;
@@ -360,7 +361,8 @@ public class ConnectionManager {
   }
 
   public void broadcastNoteListExcept(List<NoteInfo> notesInfo,
-                                      AuthenticationInfo subject) {
+                                      AuthenticationInfo subject,
+                                      Notebook notebook) {
     Set<String> userAndRoles;
     for (String user : userSocketMap.keySet()) {
       if (subject.getUser().equals(user)) {
@@ -369,8 +371,8 @@ public class ConnectionManager {
       //reloaded already above; parameter - false
       userAndRoles = authorizationService.getRoles(user);
       userAndRoles.add(user);
-      // TODO(zjffdu) is it ok for comment the following line ?
-      // notesInfo = generateNotesInfo(false, new AuthenticationInfo(user), userAndRoles);
+      notesInfo = notebook.getNotesInfo(
+        noteId -> authorizationService.isReader(noteId, userAndRoles));
       multicastToUser(user, new Message(Message.OP.NOTES_INFO).put("notes", notesInfo));
     }
   }
@@ -405,19 +407,6 @@ public class ConnectionManager {
     broadcast(note.getId(),
         new Message(Message.OP.PARAGRAPH_ADDED).put("paragraph", para).put("index", paraIndex));
   }
-
-  //  public void broadcastNoteList(AuthenticationInfo subject, Set<String> userAndRoles) {
-  //    if (subject == null) {
-  //      subject = new AuthenticationInfo(StringUtils.EMPTY);
-  //    }
-  //    //send first to requesting user
-  //    List<Map<String, String>> notesInfo = generateNotesInfo(false, subject, userAndRoles);
-  //    multicastToUser(subject.getUser(), new Message(Message.OP.NOTES_INFO)
-  // .put("notes", notesInfo));
-  //    //to others afterwards
-  //    broadcastNoteListExcept(notesInfo, subject);
-  //  }
-
 
   private void broadcastNoteForms(Note note) {
     GUI formsSettings = new GUI();

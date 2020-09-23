@@ -646,7 +646,7 @@ public class NotebookServer extends WebSocketServlet
     Message message = new Message(OP.NOTES_INFO).put("notes", notesInfo);
     getConnectionManager().multicastToUser(subject.getUser(), message);
     //to others afterwards
-    getConnectionManager().broadcastNoteListExcept(notesInfo, subject);
+    getConnectionManager().broadcastNoteListExcept(notesInfo, subject, getNotebook());
   }
 
   public void broadcastNoteList(AuthenticationInfo subject, Set<String> userAndRoles) {
@@ -781,7 +781,7 @@ public class NotebookServer extends WebSocketServlet
             getConnectionManager().multicastToUser(context.getAutheInfo().getUser(),
                 new Message(OP.NOTES_INFO).put("notes", notesInfo));
             //to others afterwards
-            getConnectionManager().broadcastNoteListExcept(notesInfo, context.getAutheInfo());
+            getConnectionManager().broadcastNoteListExcept(notesInfo, context.getAutheInfo(), getNotebook());
           }
         });
   }
